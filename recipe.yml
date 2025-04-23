@@ -1,12 +1,8 @@
-base: ghcr.io/vanilla-os/core:main
-name: Vanilla Installer
+base: ghcr.io/planifolia-images/core:main
+name: Planifolia Installer
 id: installer
 labels:
-  maintainer: Vanilla OS Contributors
-args:
-  DEBIAN_FRONTEND: noninteractive
-runs:
-- echo 'APT::Install-Recommends "1";' > /etc/apt/apt.conf.d/01norecommends
+  maintainer: nisel11
 
 stages:
   - id: build
@@ -24,10 +20,8 @@ stages:
         type: shell
         commands:
         - echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"' > /etc/environment
-        - sed -i '4,10d' /etc/profile
-        - apt update
-        - apt upgrade -y
-        - apt clean
+        - lpkg --unlock
+        - pacman -Syu --noconfirm
 
       - name: packages-modules
         type: includes
@@ -53,10 +47,8 @@ stages:
         type: shell
         commands:
           - useradd -m vanilla
-          - usermod -aG sudo vanilla
+          - usermod -aG sudo wheel vanilla
           - passwd -d vanilla
-          - mv /etc/gdm/* /etc/gdm3/.
-          - rm -r /etc/gdm
 
       - name: system
         type: shell

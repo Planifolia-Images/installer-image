@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: deps
-      run: sudo apt-get install -y mtools xorriso git libconfuse-dev podman buildah slirp4netns uidmap containers-storage
+      run: sudo apt-get install -y mtools xorriso git libconfuse-dev podman buildah slirp4netns uidmap containers-storage fuse-overlayfs
 
     - name: genimage
       run: |
@@ -27,6 +27,17 @@ jobs:
     - uses: vanilla-os/vib-gh-action@v0.8.1
       with:
         recipe: 'recipe.yml'
+
+    - name: Configure Podman storage
+      run: |
+        sudo mkdir -p /etc/containers
+        echo -e "[storage]\ndriver = \"overlay\"\nrunroot = \"/run/user/$(id -u)/containers\"\ngraphroot = \"/var/lib/containers/storage\"" | sudo tee /etc/containers/storage.conf
+
+    - name: Wipe Podman storage
+      run: |
+        sudo rm -rf /var/lib/containers/storage/*
+        sudo rm -rf /run/user/$(id -u)/containers/*
+        sudo podman system reset -f
 
     - name: Build the Docker image
       run: |
